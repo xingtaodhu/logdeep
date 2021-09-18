@@ -3,6 +3,7 @@
 
 import argparse
 import sys
+
 sys.path.append('../')
 
 from logdeep.models.lstm import deeplog, loganomaly, robustlog
@@ -10,13 +11,12 @@ from logdeep.tools.predict import Predicter
 from logdeep.tools.train import Trainer
 from logdeep.tools.utils import *
 
-
 # Config Parameters
 
 options = dict()
 options['data_dir'] = '../data/'
 options['window_size'] = 10
-options['device'] = "cpu"
+options['device'] = "cuda"
 
 # Smaple
 options['sample'] = "sliding_window"
@@ -71,14 +71,35 @@ def predict():
                     num_layers=options['num_layers'],
                     num_keys=options['num_classes'])
     predicter = Predicter(Model, options)
-    predicter.predict_unsupervised()
+    return predicter.predict_unsupervised()
+
+
+def get_times_mean(times):
+    sum_P = 0.0
+    sum_R = 0.0
+    sum_F1 = 0.0
+    for j in range(1, times):
+        train()
+        cur_P, cur_R, cur_F1 = predict()
+        print(
+            'current_P : {:.3f}%, current_R : {:.3f}%, current_F1 : {:.3f}%, current_lr: {:.5f}'
+                .format(cur_P, cur_R, cur_F1, options['lr']))
+        sum_P += cur_P
+        sum_R += cur_R
+        sum_F1 += cur_F1
+    times = times - 1
+    print('mean_P : {:.3f}%, mean_R : {:.3f}%, mean_F1 : {:.3f}%'.format(sum_P / times, sum_R / times, sum_F1 / times))
+    return sum_P / times, sum_R / times, sum_F1 / times
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['train', 'predict'])
-    args = parser.parse_args()
-    if args.mode == 'train':
-        train()
-    else:
-        predict()
+
+    get_times_mean(10)
+
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('mode', choices=['train', 'predict'])
+    # args = parser.parse_args()
+    # if args.mode == 'train':
+    #     train()
+    # else:
+    #     predict()

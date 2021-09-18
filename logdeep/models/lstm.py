@@ -15,12 +15,12 @@ class deeplog(nn.Module):
         self.fc = nn.Linear(hidden_size, num_keys)
 
     def forward(self, features, device):
-        input0 = features[0]
+        input0 = features[0]  # torch.size 2048 * 10 * 1  floattensor
         h0 = torch.zeros(self.num_layers, input0.size(0),
-                         self.hidden_size).to(device)
+                         self.hidden_size).to(device)   # 2 2048 64
         c0 = torch.zeros(self.num_layers, input0.size(0),
-                         self.hidden_size).to(device)
-        out, _ = self.lstm(input0, (h0, c0))
+                         self.hidden_size).to(device)  # 2 2048 64
+        out, _ = self.lstm(input0, (h0, c0))   # 2048*10*64
         out = self.fc(out[:, -1, :])
         return out
 

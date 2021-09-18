@@ -5,10 +5,11 @@ import argparse
 import sys
 sys.path.append('../')
 
-from logdeep.models.lstm import deeplog, loganomaly, robustlog
+from logdeep.models.transformers import deeplog, loganomaly, robustlog
 from logdeep.tools.predict import Predicter
 from logdeep.tools.train import Trainer
 from logdeep.tools.utils import *
+
 
 
 # Config Parameters

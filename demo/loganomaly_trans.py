@@ -5,7 +5,7 @@ import argparse
 import sys
 sys.path.append('../')
 
-from logdeep.models.lstm import deeplog, loganomaly, robustlog
+from logdeep.models.transformers import deeplog, loganomaly, robustlog
 from logdeep.tools.predict import Predicter
 from logdeep.tools.train import Trainer
 from logdeep.tools.utils import *
@@ -19,60 +19,59 @@ options['window_size'] = 10
 options['device'] = "cuda"
 
 # Smaple
-options['sample'] = "session_window"
-options['window_size'] = -1
+options['sample'] = "sliding_window"
+options['window_size'] = 10  # if fix_window
 
 # Features
-options['sequentials'] = False
-options['quantitatives'] = False
-options['semantics'] = True
+options['sequentials'] = True
+options['quantitatives'] = True
+options['semantics'] = False
 options['feature_num'] = sum(
     [options['sequentials'], options['quantitatives'], options['semantics']])
 
 # Model
-options['input_size'] = 300
-options['hidden_size'] = 128
+options['input_size'] = 1
+options['hidden_size'] = 64
 options['num_layers'] = 2
-options['num_classes'] = 2
+options['num_classes'] = 28
 
 # Train
-options['batch_size'] = 256
+options['batch_size'] = 2048
 options['accumulation_step'] = 1
 
 options['optimizer'] = 'adam'
-options['lr'] = 0.001
-options['max_epoch'] = 60
-options['lr_step'] = (40, 50)
+options['lr'] = 0.005
+options['max_epoch'] = 370
+options['lr_step'] = (300, 350)
 options['lr_decay_ratio'] = 0.1
 
 options['resume_path'] = None
-options['model_name'] = "robustlog"
-options['save_dir'] = "../result/robustlog/"
+options['model_name'] = "loganomaly"
+options['save_dir'] = "../result/loganomaly/"
 
 # Predict
-options['model_path'] = "../result/robustlog/robustlog_last.pth"
-options['num_candidates'] = -1
+options['model_path'] = "../result/loganomaly/loganomaly_last.pth"
+options['num_candidates'] = 9
 
 seed_everything(seed=1234)
 
 
 def train():
-    Model = robustlog(input_size=options['input_size'],
-                      hidden_size=options['hidden_size'],
-                      num_layers=options['num_layers'],
-                      num_keys=options['num_classes'])
+    Model = loganomaly(input_size=options['input_size'],
+                       hidden_size=options['hidden_size'],
+                       num_layers=options['num_layers'],
+                       num_keys=options['num_classes'])
     trainer = Trainer(Model, options)
     trainer.start_train()
 
 
 def predict():
-    Model = robustlog(input_size=options['input_size'],
-                      hidden_size=options['hidden_size'],
-                      num_layers=options['num_layers'],
-                      num_keys=options['num_classes'])
+    Model = loganomaly(input_size=options['input_size'],
+                       hidden_size=options['hidden_size'],
+                       num_layers=options['num_layers'],
+                       num_keys=options['num_classes'])
     predicter = Predicter(Model, options)
-    return predicter.predict_supervised()
-
+    return predicter.predict_unsupervised()
 
 def get_times_mean(times):
     sum_P = 0.0
